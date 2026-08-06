@@ -10,7 +10,7 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@whiskeysockets/baileys": "github:mauricegift/baileys-new",
+    "@whiskeysockets/baileys": "github:isagii7/baileys-new",
     "axios": "latest",
     "body-parser": "^1.20.2",
     "crypto": "latest",
