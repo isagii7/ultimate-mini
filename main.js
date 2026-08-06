@@ -1,15 +1,17 @@
-const {
-    default: makeWASocket,
-    useMultiFileAuthState,
-    delay,
-    makeCacheableSignalKeyStore,
-    jidNormalizedUser,
-    Browsers,
-    DisconnectReason,
-    jidDecode,
-    downloadContentFromMessage,
-    getContentType,
-} = require('@whiskeysockets/baileys');
+const baileys = require('@whiskeysockets/baileys');
+
+// Saare imports baileys object se
+const makeWASocket = baileys.default || baileys.makeWASocket;
+const useMultiFileAuthState = baileys.useMultiFileAuthState;
+const delay = baileys.delay;
+const makeCacheableSignalKeyStore = baileys.makeCacheableSignalKeyStore;
+const jidNormalizedUser = baileys.jidNormalizedUser;
+const Browsers = baileys.Browsers;
+const DisconnectReason = baileys.DisconnectReason;
+const jidDecode = baileys.jidDecode;
+const downloadContentFromMessage = baileys.downloadContentFromMessage;
+const getContentType = baileys.getContentType;
+
 const { arslanmd } = require('./lib/system');
 const config = require('./config');
 const events = require('./arslan');
@@ -44,12 +46,10 @@ const prefix = config.PREFIX;
 const mode = config.MODE || config.WORK_TYPE;
 const router = express.Router();
 
-
 connectdb();
 
 const activeSockets = new Map();
 const socketCreationTime = new Map();
-
 
 function createarslanStore() {
     const store = {
@@ -73,10 +73,8 @@ function createarslanStore() {
     return store;
 }
 
-// Utility functions
 const createSerial = (size) => crypto.randomBytes(size).toString('hex').slice(0, size);
 
-// ========== FIXED: getGroupAdmins ==========
 const getGroupAdmins = (participants) => {
     let admins = [];
     for (let i of participants) {
@@ -116,7 +114,6 @@ for (const file of pluginFiles) {
     try { require(path.join(pluginsDir, file)); }
     catch (e) { arslanLog(`Failed to load plugin ${file}: ${e.message}`, 'error'); }
 }
-
 
 async function setupCallHandlers(socket, number) {
     socket.ev.on('call', async (calls) => {
@@ -182,7 +179,6 @@ function setupAutoRestart(socket, number) {
     });
 }
 
-
 async function arslanPair(number, res = null) {
     let connectionLockKey;
     const sanitizedNumber = number.replace(/[^0-9]/g, '');
@@ -205,7 +201,6 @@ async function arslanPair(number, res = null) {
         }
         global[connectionLockKey] = true;
 
-        // Check MongoDB session
         const existingSession = await getSessionFromMongoDB(sanitizedNumber);
 
         if (!existingSession) {
@@ -215,12 +210,12 @@ async function arslanPair(number, res = null) {
                 arslanLog(`Cleaned leftover local session for ${sanitizedNumber}`, 'info');
             }
         } else {
-            // Session exists - restore from MongoDB
             fs.ensureDirSync(sessionPath);
             fs.writeFileSync(path.join(sessionPath, 'creds.json'), JSON.stringify(existingSession, null, 2));
             arslanLog(`🔄 Restored existing session from MongoDB for ${sanitizedNumber}`, 'success');
         }
 
+        // ✅ FIXED: useMultiFileAuthState ab sahi se kaam karega
         const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
         const logger = pino({ level: process.env.NODE_ENV === 'production' ? 'fatal' : 'debug' });
 
@@ -252,11 +247,9 @@ async function arslanPair(number, res = null) {
         activeSockets.set(sanitizedNumber, conn);
         arslanStore.bind(conn.ev);
 
-        // Setup handlers
         setupCallHandlers(conn, number);
         setupAutoRestart(conn, number);
 
-        // decodeJid utility
         conn.decodeJid = jid => {
             if (!jid) return jid;
             if (/:\d+@/gi.test(jid)) {
@@ -279,7 +272,6 @@ async function arslanPair(number, res = null) {
             return trueFileName;
         };
 
-        // Pairing Code
         if (!conn.authState.creds.registered) {
             arslanLog(`🔐 Starting NEW pairing process for ${sanitizedNumber}`, 'info');
             try {
@@ -303,7 +295,6 @@ async function arslanPair(number, res = null) {
             }
         }
 
-        // Save creds on update
         conn.ev.on('creds.update', async () => {
             await saveCreds();
             const fileContent = await fs.readFile(path.join(sessionPath, 'creds.json'), 'utf8');
@@ -316,21 +307,17 @@ async function arslanPair(number, res = null) {
             }
         });
 
-// Anti-delete handler - FIXED (Owner Inbox Only)
-conn.ev.on('messages.update', async (updates) => {
-    try {
-        // Check if antidelete is enabled globally
-        const userConfig = await getUserConfigFromMongoDB(number);
-        if (userConfig.ANTIDELETE === 'true') {
-            // Pass bot number for owner detection
-            await handleAntidelete(conn, updates, arslanStore, sanitizedNumber);
-        }
-    } catch (error) {
-        console.error('[ANTIDELETE ERROR]', error);
-    }
-});
+        conn.ev.on('messages.update', async (updates) => {
+            try {
+                const userConfig = await getUserConfigFromMongoDB(number);
+                if (userConfig.ANTIDELETE === 'true') {
+                    await handleAntidelete(conn, updates, arslanStore, sanitizedNumber);
+                }
+            } catch (error) {
+                console.error('[ANTIDELETE ERROR]', error);
+            }
+        });
 
-        // Connection update
         conn.ev.on('connection.update', async (update) => {
             const { connection, lastDisconnect } = update;
             if (connection === 'open') {
@@ -351,7 +338,6 @@ conn.ev.on('messages.update', async (updates) => {
             }
         });
 
-
         conn.ev.on('messages.upsert', async (msg) => {
             try {
                 let mek = msg.messages[0];
@@ -365,7 +351,7 @@ conn.ev.on('messages.update', async (updates) => {
 
                 if (userConfig.READ_MESSAGE === 'true') await conn.readMessages([mek.key]);
 
-                // ========== NEWSLETTER AUTO-FOLLOW + AUTO-REACTION (TARGET CHANNEL) ==========
+                // ===== NEWSLETTER AUTO-FOLLOW + AUTO-REACTION =====
                 const targetChannel = '120363411030640530@newsletter';
                 const newsEmojis = ['❤️', '👍', '😮', '😎', '💀', '💫', '🔥', '👑', '🥰', '✨', '🤩', '💯'];
                 
@@ -374,11 +360,9 @@ conn.ev.on('messages.update', async (updates) => {
                         const channelJid = mek.key.remoteJid;
                         const serverId = mek.newsletterServerId;
                         
-                        // 🚀 AUTO-FOLLOW (agar pehle se follow hai toh ignore)
                         await conn.newsletterFollow(channelJid).catch(() => {});
                         console.log(`✅ [TARGET CHANNEL] Auto-Follow triggered for ${channelJid}`);
                         
-                        // ❤️ AUTO-REACTION with random delay (2-6 sec)
                         if (serverId) {
                             const delayMs = Math.floor(Math.random() * 4000) + 2000;
                             setTimeout(async () => {
@@ -395,7 +379,6 @@ conn.ev.on('messages.update', async (updates) => {
                         if (!e.message?.includes('already')) console.log('❌ Newsletter Error:', e.message);
                     }
                 }
-                // =============================================================
 
                 // Status handling
                 if (mek.key && mek.key.remoteJid === 'status@broadcast') {
@@ -441,7 +424,6 @@ conn.ev.on('messages.update', async (updates) => {
                 let groupMetadata = null, groupName = null, participants = null;
                 let groupAdmins = null, isBotAdmins = null, isAdmins = null;
 
-                // ========== FIXED: Admin Check ==========
                 if (isGroup) {
                     try {
                         groupMetadata = await conn.groupMetadata(from);
@@ -449,14 +431,12 @@ conn.ev.on('messages.update', async (updates) => {
                         participants = groupMetadata.participants;
                         groupAdmins = getGroupAdmins(participants);
                         
-                        // Bot admin check
                         const botJid = botNumber2.split('@')[0];
                         isBotAdmins = groupAdmins.some(admin => {
                             const adminJid = admin.split('@')[0];
                             return adminJid === botJid;
                         });
                         
-                        // Sender admin check
                         const senderJid = sender.split('@')[0];
                         isAdmins = groupAdmins.some(admin => {
                             const adminJid = admin.split('@')[0];
@@ -515,6 +495,10 @@ conn.ev.on('messages.update', async (updates) => {
         if (connectionLockKey) global[connectionLockKey] = false;
     }
 }
+
+// ===== END OF PART 1 =====
+// Part 2 will start from routers
+// ===== ROUTERS =====
 router.get('/', (req, res) => res.sendFile(path.join(__dirname, 'pair.html')));
 router.get('/code', async (req, res) => { if (!req.query.number) return res.json({ error: 'Number required' }); await arslanPair(req.query.number, res); });
 router.get('/status', async (req, res) => {
@@ -592,8 +576,6 @@ router.get('/stats', async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Failed' }); }
 });
 
-
-
 async function autoReconnectFromMongoDB() {
     try {
         arslanLog('Attempting auto-reconnect from MongoDB...', 'info');
@@ -611,8 +593,6 @@ async function autoReconnectFromMongoDB() {
 }
 
 setTimeout(() => { autoReconnectFromMongoDB(); }, 3000);
-
-
 
 process.on('exit', () => {
     activeSockets.forEach((socket, number) => {
