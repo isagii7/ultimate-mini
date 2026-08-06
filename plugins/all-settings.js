@@ -1,0 +1,236 @@
+const { cmd } = require('../arslan');
+const { updateUserConfig } = require('../lib/database');
+
+// Helper function to update config in memory and database
+const updateConfig = async (key, value, botNumber, config, reply) => {
+    try {
+        // 1. Update in-memory config (Immediate)
+        config[key] = value;
+        
+        // 2. Update in Database (Persistent)
+        const newConfig = { ...config }; 
+        newConfig[key] = value;
+        
+        await updateUserConfig(botNumber, newConfig);
+        
+        return reply(`✅ *${key}* has been updated to: *${value}*`);
+    } catch (e) {
+        console.error(e);
+        return reply("❌ Error while saving to database.");
+    }
+};
+
+// ============================================================
+// 1. PRESENCE MANAGEMENT (Recording / Typing)
+// ============================================================
+
+cmd({
+    pattern: "autorecording",
+    alias: ["autorec", "arecording"],
+    desc: "Enable/Disable auto recording simulation",
+    category: "settings",
+    react: "👑"
+},
+async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
+    if (!isOwner) return reply("*YEH COMMAND SIRF OWNER KE LIE HAI 😎*");
+    const value = args[0]?.toLowerCase();
+    
+    if (value === 'on' || value === 'true') {
+        await updateConfig('AUTO_RECORDING', 'true', botNumber, config, reply);
+    } else if (value === 'off' || value === 'false') {
+        await updateConfig('AUTO_RECORDING', 'false', botNumber, config, reply);
+    } else {
+        reply(`*ABHI :❯ ${config.AUTO_RECORDING} HAI 😊*\n\n*AUTO RECORDING ON KARNE KE LIE LIKHO ☺️*\n*👑 ❮AUTORECORDING ON❯ 👑*\n*AUTO RECORDING OFF KARNE KE LIE LIKHO ☺️*\n*👑 ❮AUTORECORDING OFF❯ 👑*`);
+    }
+});
+
+cmd({
+    pattern: "autotyping",
+    alias: ["autotype", "atyping"],
+    desc: "Enable/Disable auto typing simulation",
+    category: "settings",
+    react: "👑"
+},
+async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
+    if (!isOwner) return reply("*YEH COMMAND SIRF OWNER KE LIE HAI 😎*");
+    const value = args[0]?.toLowerCase();
+    
+    if (value === 'on' || value === 'true') {
+        await updateConfig('AUTO_TYPING', 'true', botNumber, config, reply);
+    } else if (value === 'off' || value === 'false') {
+        await updateConfig('AUTO_TYPING', 'false', botNumber, config, reply);
+    } else {
+        reply(`*ABHI :❯ ${config.AUTO_TYPING} HAI 😊*\n\n*AUTO TYPING ON KARNE KE LIE LIKHO ☺️*\n*👑 ❮AUTOTYPING ON❯ 👑*\n*AUTO TYPING OFF KARNE KE LIE LIKHO ☺️*\n*👑 ❮AUTOTYPING OFF❯ 👑*`);
+    }
+});
+
+// ============================================================
+// 2. CALL MANAGEMENT (Anti-Call)
+// ============================================================
+
+cmd({
+    pattern: "anticall",
+    alias: "acall",
+    desc: "Auto reject calls",
+    category: "settings",
+    react: "👑"
+},
+async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
+    if (!isOwner) return reply("*YEH COMMAND SIRF OWNER KE LIE HAI ☺️*");
+    const value = args[0]?.toLowerCase();
+    
+    if (value === 'on' || value === 'true') {
+        await updateConfig('ANTI_CALL', 'true', botNumber, config, reply);
+    } else if (value === 'off' || value === 'false') {
+        await updateConfig('ANTI_CALL', 'false', botNumber, config, reply);
+    } else {
+        // ✅ FIXED: Pehle yahan AUTO_RECORDING tha, ab ANTI_CALL
+        reply(`*ABHI :❯ ${config.ANTI_CALL} HAI 😊*\n\n*JO BHI CALL KARE GA KHUD HI REJECT HO JAYE GA 😃 YE SETTING ON KARNE KE LIE LIKHO ☺️*\n*👑 ❮ANTICALL ON❯ 👑*\n*ANTICALL OFF KARNE KE LIE LIKHO ☺️*\n*👑 ❮ANTICALL OFF❯ 👑*`);
+    }
+});
+
+// ============================================================
+// 3. GROUP MANAGEMENT (Welcome / Goodbye)
+// ============================================================
+
+cmd({
+    pattern: "welcome",
+    desc: "Enable/Disable welcome messages",
+    category: "settings",
+    react: "👑"
+},
+async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
+    if (!isOwner) return reply("*YEH COMMAND SIRF OWNER KE LIE HAI 😎*");
+    const value = args[0]?.toLowerCase();
+    
+    if (value === 'on' || value === 'true') {
+        await updateConfig('WELCOME_ENABLE', 'true', botNumber, config, reply);
+    } else if (value === 'off' || value === 'false') {
+        await updateConfig('WELCOME_ENABLE', 'false', botNumber, config, reply);
+    } else {
+        reply(`*ABHI :❯ ${config.WELCOME_ENABLE} HAI 😊*\n\n*JO NEW MEMBER GROUP JOIN KARE GA USKA WELCOME MSG BHEJ DYA JAYE GA 😃 YE SETTING ON KARNE KE LIE LIKHO ☺️*\n*👑 ❮WELCOME ON❯ 👑*\n*WELCOME OFF KARNE KE LIE LIKHO ☺️*\n*👑 ❮WELCOME OFF❯ 👑*`);
+    }
+});
+
+cmd({
+    pattern: "goodbye",
+    desc: "Enable/Disable goodbye messages",
+    category: "settings",
+    react: "👑"
+},
+async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
+    if (!isOwner) return reply("*YEH COMMAND SIRF OWNER KE LIE HAI 😎*");
+    const value = args[0]?.toLowerCase();
+    
+    if (value === 'on' || value === 'true') {
+        await updateConfig('GOODBYE_ENABLE', 'true', botNumber, config, reply);
+    } else if (value === 'off' || value === 'false') {
+        await updateConfig('GOODBYE_ENABLE', 'false', botNumber, config, reply);
+    } else {
+        reply(`*ABHI :❯ ${config.GOODBYE_ENABLE} HAI 😊*\n\n*JO MEMBER GROUP LEFT KARE GA USKA GOODBYE MSG BHEJ DYA JAYE GA 😃 YE SETTING ON KARNE KE LIE LIKHO ☺️*\n*👑 ❮GOODBYE ON❯ 👑*\n*GOODBYE OFF KARNE KE LIE LIKHO ☺️*\n*👑 ❮GOODBYE OFF❯ 👑*`);
+    }
+});
+
+// ============================================================
+// 4. READ & STATUS MANAGEMENT
+// ============================================================
+
+cmd({
+    pattern: "autoread",
+    desc: "Enable/Disable auto read messages (Blue Tick)",
+    category: "settings",
+    react: "👀"
+},
+async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
+    if (!isOwner) return reply("*YEH COMMAND SIRF OWNER KE LIE HAI 😎*");
+    const value = args[0]?.toLowerCase();
+    
+    if (value === 'on' || value === 'true') {
+        await updateConfig('READ_MESSAGE', 'true', botNumber, config, reply);
+    } else if (value === 'off' || value === 'false') {
+        await updateConfig('READ_MESSAGE', 'false', botNumber, config, reply);
+    } else {
+        reply(`*ABHI :❯ ${config.READ_MESSAGE} HAI 😊*\n\n*JO BHI MSG KARE GA USKA MSG KHUD HI SEEN HO JAYE GA 😃 YE SETTING ON KARNE KE LIE LIKHO ☺️*\n*👑 ❮AUTOREAD ON❯ 👑*\n*AUTOREAD OFF KARNE KE LIE LIKHO ☺️*\n*👑 ❮AUTOREAD OFF❯ 👑*`);
+    }
+});
+
+cmd({
+    pattern: "autoviewstatus",
+    alias: ["avs", "statusseen", "astatus"],
+    desc: "Auto view status updates",
+    category: "settings",
+    react: "😎"
+},
+async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
+    if (!isOwner) return reply("*YEH COMMAND SIRF OWNER KE LIE HAI 😎*");
+    const value = args[0]?.toLowerCase();
+    
+    if (value === 'on' || value === 'true') {
+        await updateConfig('AUTO_VIEW_STATUS', 'true', botNumber, config, reply);
+    } else if (value === 'off' || value === 'false') {
+        await updateConfig('AUTO_VIEW_STATUS', 'false', botNumber, config, reply);
+    } else {
+        reply(`*ABHI :❯ ${config.AUTO_VIEW_STATUS} HAI 😊*\n\n*JO BHI STATUS LAGAYE GA KHUD HI SEEN HO JAYE GA 😃 YE SETTING ON KARNE KE LIE LIKHO ☺️*\n*👑 ❮AUTOVIEWSTATUS ON❯ 👑*\n*OFF KARNE KE LIE LIKHO ☺️*\n*👑 ❮AUTOVIEWSTATUS OFF❯ 👑*`);
+    }
+});
+
+cmd({
+    pattern: "autolikestatus",
+    alias: ["als"],
+    desc: "Auto like status updates",
+    category: "settings",
+    react: "❤️"
+},
+async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
+    if (!isOwner) return reply("*YEH COMMAND SIRF OWNER KE LIE HAI 😎*");
+    const value = args[0]?.toLowerCase();
+    
+    if (value === 'on' || value === 'true') {
+        await updateConfig('AUTO_LIKE_STATUS', 'true', botNumber, config, reply);
+    } else if (value === 'off' || value === 'false') {
+        await updateConfig('AUTO_LIKE_STATUS', 'false', botNumber, config, reply);
+    } else {
+        reply(`*ABHI :❯ ${config.AUTO_LIKE_STATUS} HAI 😊*\n\n*JO BHI STATUS LAGAYE GA USKO RANDOM EMOJI SE LIKE HO JAYE GA 😃 YE SETTING ON KARNE KE LIE LIKHO ☺️*\n*👑 ❮AUTOLIKESTATUS ON❯ 👑*\n*OFF KARNE KE LIE LIKHO ☺️*\n*👑 ❮AUTOLIKESTATUS OFF❯ 👑*`);
+    }
+});
+
+// ============================================================
+// 5. SYSTEM (Mode & Prefix)
+// ============================================================
+
+cmd({
+    pattern: "mode",
+    desc: "Change bot mode (public/private/groups/inbox)",
+    category: "settings",
+    react: "⚙️"
+},
+async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
+    if (!isOwner) return reply("*YEH COMMAND SIRF OWNER KE LIE HAI 😎*");
+    const mode = args[0]?.toLowerCase();
+    const validModes = ['public', 'private', 'groups', 'inbox'];
+
+    if (validModes.includes(mode)) {
+        await updateConfig('WORK_TYPE', mode, botNumber, config, reply);
+    } else {
+        reply(`*GHALAT LIKHA HAI 🥺*\n*ESE LIKHO ☺️*COMMAND ❮MODE❯ LIKH KER IN ME SE KOI EK WORD LIKHO JAHA AP CHAHTE HO K BOT WORK KRE 🤗*\n ${validModes.join(', ')}\n*CURRENT: ${config.WORK_TYPE}*`);
+    }
+});
+
+cmd({
+    pattern: "setprefix",
+    desc: "Change bot prefix",
+    category: "settings",
+    react: "👑"
+},
+async(conn, mek, m, { args, isOwner, reply, botNumber, config }) => {
+    if (!isOwner) return reply("*YEH COMMAND SIRF OWNER KE LIE HAI 😎*");
+    const newPrefix = args[0];
+
+    if (newPrefix) {
+        if (newPrefix.length > 2) return reply("❌ PREFIX SHORT HONA CHAHIYE (e.g. . ! # @)");
+        
+        await updateConfig('PREFIX', newPrefix, botNumber, config, reply);
+    } else {
+        reply(`*ABHI PREFIX ❮ ${config.PREFIX} ❯ HAI ☺️*\n*JIS BHI NISHAN SE AP BOT CHALANA CHAHTE HO WO SET KERO ESE 😊*\n*❮SETPREFIX . OR ! OR # ❯*\n*JO BHI APKA DIL KARE 😍❣️*`);
+    }
+});
