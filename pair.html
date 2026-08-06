@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXTY MINI · PAIRING</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #06080A;
+            --panel: rgba(10, 14, 18, 0.85);
+            --border: rgba(0, 255, 255, 0.15);
+            --cyan: #00F0FF;
+            --magenta: #FF2D95;
+            --glow: 0 0 30px rgba(0, 240, 255, 0.08);
+            --radius: 24px;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+            font-family: 'Inter', sans-serif;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ---- CANVAS BACKGROUND ---- */
+        #particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ---- CARD ---- */
+        .card {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 420px;
+            background: var(--panel);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 36px 28px 28px;
+            box-shadow: var(--glow), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+            transition: border-color 0.3s;
+            animation: floatCard 6s ease-in-out infinite;
+        }
+
+        @keyframes floatCard {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: calc(var(--radius) + 2px);
+            padding: 2px;
+            background: conic-gradient(from 0deg, transparent, var(--cyan), transparent, var(--magenta), transparent);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            animation: spinBorder 8s linear infinite;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        @keyframes spinBorder {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ---- STATUS ROW ---- */
+        .status-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+        .status-row .label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.4);
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--cyan);
+            box-shadow: 0 0 12px var(--cyan);
+            animation: pulseDot 1.8s ease-in-out infinite;
+        }
+        @keyframes pulseDot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+        }
+
+        /* ---- RADAR ---- */
+        .radar {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .radar-ring {
+            position: absolute;
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            border-radius: 50%;
+            inset: 0;
+            animation: spinRing 12s linear infinite;
+        }
+        .radar-ring.r2 { inset: 12px; animation-duration: 18s; }
+        .radar-ring.r3 { inset: 24px; animation-duration: 24s; }
+        @keyframes spinRing {
+            to { transform: rotate(360deg); }
+        }
+        .radar-ping {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 1px solid var(--cyan);
+            opacity: 0;
+        }
+        .radar-ping.active {
+            animation: pingRadar 2s cubic-bezier(0, 0.4, 0.3, 1) infinite;
+        }
+        @keyframes pingRadar {
+            0% { transform: scale(0.6); opacity: 0.8; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        .radar-core {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(0, 240, 255, 0.05);
+            border: 1px solid var(--cyan);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            animation: glowCore 3s ease-in-out infinite;
+        }
+        @keyframes glowCore {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 240, 255, 0.1); }
+            50% { box-shadow: 0 0 40px rgba(0, 240, 255, 0.25); }
+        }
+        .radar-core svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--cyan);
+            fill: none;
+        }
+
+        /* ---- HEADINGS ---- */
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 1.6rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--cyan), var(--magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 1px;
+        }
+        .tagline {
+            text-align: center;
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.4);
+            margin: 6px 0 24px;
+            font-weight: 400;
+            letter-spacing: 0.3px;
+        }
+
+        /* ---- FIELD ---- */
+        .field-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.3);
+            margin-bottom: 6px;
+            display: block;
+        }
+        .field-wrap {
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            background: rgba(0,0,0,0.3);
+            transition: border-color 0.3s, box-shadow 0.3s;
+            margin-bottom: 4px;
+        }
+        .field-wrap:focus-within {
+            border-color: var(--cyan);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.08);
+        }
+        .field-wrap input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 14px 16px;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+        }
+        .field-wrap input::placeholder {
+            color: rgba(255,255,255,0.15);
+        }
+        .field-hint {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.15);
+            margin-bottom: 22px;
+        }
+
+        /* ---- BUTTON ---- */
+        button.generate {
+            width: 100%;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--cyan), #0088FF);
+            color: #06080A;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            padding: 15px;
+            border-radius: 12px;
+            transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        button.generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 240, 255, 0.2);
+            background: linear-gradient(135deg, #00F0FF, #00AAFF);
+        }
+        button.generate:active {
+            transform: scale(0.97);
+        }
+        button.generate:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        button.generate::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        button.generate:hover::after {
+            opacity: 1;
+        }
+
+        /* ---- RESULT ---- */
+        .result {
+            margin-top: 22px;
+            display: none;
+            animation: fadeSlide 0.5s ease;
+        }
+        .result.show { display: block; }
+        @keyframes fadeSlide {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-heading {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.3);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .otp-row {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .otp-digit {
+            min-width: 32px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 240, 255, 0.04);
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--cyan);
+            animation: popDigit 0.3s ease backwards;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+        }
+        .otp-digit:hover {
+            background: rgba(0, 240, 255, 0.08);
+            transform: scale(1.05);
+        }
+        .otp-digit:nth-child(1) { animation-delay: 0.05s; }
+        .otp-digit:nth-child(2) { animation-delay: 0.10s; }
+        .otp-digit:nth-child(3) { animation-delay: 0.15s; }
+        .otp-digit:nth-child(4) { animation-delay: 0.20s; }
+        .otp-digit:nth-child(5) { animation-delay: 0.25s; }
+        .otp-digit:nth-child(6) { animation-delay: 0.30s; }
+
+        @keyframes popDigit {
+            0% { transform: scale(0.5) rotateY(90deg); opacity: 0; }
+            100% { transform: scale(1) rotateY(0); opacity: 1; }
+        }
+
+        .status-message {
+            text-align: center;
+            font-weight: 600;
+            padding: 14px;
+            border-radius: 12px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.04);
+            font-size: 0.85rem;
+        }
+        .status-message.warn { color: #F5A623; border-color: rgba(245,166,35,0.2); }
+        .status-message.error { color: #FF5D5D; border-color: rgba(255,93,93,0.2); }
+        .status-message.info { color: var(--cyan); border-color: rgba(0,240,255,0.2); }
+        .status-message.success { color: #3ECF8E; border-color: rgba(62,207,142,0.2); }
+
+        .result-note {
+            text-align: center;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.2);
+            margin-top: 12px;
+        }
+        .copy-hint {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.15);
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        .loader-dots {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            padding: 12px 0;
+        }
+        .loader-dots span {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--cyan);
+            animation: bounceDot 1.2s ease-in-out infinite;
+        }
+        .loader-dots span:nth-child(2) { animation-delay: 0.15s; }
+        .loader-dots span:nth-child(3) { animation-delay: 0.3s; }
+        @keyframes bounceDot {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
+            30% { transform: translateY(-10px); opacity: 1; }
+        }
+
+        /* ---- FOOTER ---- */
+        .footer {
+            margin-top: 28px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.03);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.55rem;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.08);
+        }
+
+        /* ---- COPY TOAST ---- */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 240, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--cyan);
+            padding: 10px 24px;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.4s, transform 0.4s;
+            pointer-events: none;
+            z-index: 999;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ---- RESPONSIVE ---- */
+        @media (max-width: 480px) {
+            .card { padding: 28px 18px 22px; }
+            h1 { font-size: 1.3rem; }
+            .radar { width: 80px; height: 80px; }
+            .radar-core { width: 28px; height: 28px; }
+            .radar-core svg { width: 14px; height: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- CANVAS PARTICLES -->
+    <canvas id="particles"></canvas>
+
+    <!-- CARD -->
+    <div class="card">
+
+        <div class="status-row">
+            <span class="label">NEXTY MINI · PAIR</span>
+            <div style="display:flex;align-items:center;gap:6px;">
+                <span class="status-dot"></span>
+                <span class="label" style="color:var(--cyan);">ONLINE</span>
+            </div>
+        </div>
+
+        <div class="radar">
+            <div class="radar-ring"></div>
+            <div class="radar-ring r2"></div>
+            <div class="radar-ring r3"></div>
+            <div class="radar-ping" id="radarPing"></div>
+            <div class="radar-core">
+                <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="5" y="2" width="14" height="20" rx="2"></rect>
+                    <line x1="12" y1="18" x2="12" y2="18"></line>
+                </svg>
+            </div>
+        </div>
+
+        <h1>PAIR YOUR DEVICE</h1>
+        <p class="tagline">Enter your WhatsApp number to get a one‑time pairing code</p>
+
+        <label class="field-label" for="number">WhatsApp Number</label>
+        <div class="field-wrap">
+            <input type="text" id="number" placeholder="923343394384" autocomplete="off" inputmode="numeric">
+        </div>
+        <p class="field-hint">Include country code · no spaces or plus sign</p>
+
+        <button class="generate" id="genBtn" onclick="getCode()">GENERATE CODE</button>
+
+        <div class="result" id="result">
+            <div class="result-heading" id="resultHeading">Pairing Code</div>
+            <div id="resultBody"></div>
+            <p class="result-note" id="resultNote"></p>
+            <div class="copy-hint" id="copyHint">(click any digit to copy)</div>
+        </div>
+
+        <div class="footer">
+            <span>© 2026 NEXTY MINI</span>
+            <span>⚡ AUTOMATION</span>
+        </div>
+
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast">📋 Copied to clipboard</div>
+
+    <script>
+        // ============================================
+        // 1. CANVAS PARTICLES (floating neon orbs)
+        // ============================================
+        const canvas = document.getElementById('particles');
+        const ctx = canvas.getContext('2d');
+        let w, h, particles = [];
+
+        function resizeCanvas() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * w;
+                this.y = Math.random() * h;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 0.4;
+                this.speedY = (Math.random() - 0.5) * 0.4;
+                this.opacity = Math.random() * 0.6 + 0.2;
+                this.hue = Math.random() > 0.5 ? 180 : 330; // cyan or magenta
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0 || this.x > w) this.speedX *= -1;
+                if (this.y < 0 || this.y > h) this.speedY *= -1;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `hsla(${this.hue}, 80%, 60%, ${this.opacity})`;
+                ctx.fill();
+                // glow
+                ctx.shadowColor = `hsla(${this.hue}, 80%, 60%, ${this.opacity * 0.5})`;
+                ctx.shadowBlur = 12;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        for (let i = 0; i < 80; i++) particles.push(new Particle());
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, w, h);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        window.addEventListener('resize', resizeCanvas);
+
+        // ============================================
+        // 2. PAIR CODE LOGIC
+        // ============================================
+        const numberInput = document.getElementById('number');
+        const genBtn = document.getElementById('genBtn');
+        const result = document.getElementById('result');
+        const resultHeading = document.getElementById('resultHeading');
+        const resultBody = document.getElementById('resultBody');
+        const resultNote = document.getElementById('resultNote');
+        const copyHint = document.getElementById('copyHint');
+        const radarPing = document.getElementById('radarPing');
+        const toast = document.getElementById('toast');
+
+        function renderOtp(code) {
+            resultHeading.textContent = 'Pairing Code';
+            resultBody.innerHTML = `<div class="otp-row">${code.split('').map(ch => 
+                `<div class="otp-digit" onclick="copyCode('${code}')">${ch}</div>`
+            ).join('')}</div>`;
+            resultNote.textContent = 'Open WhatsApp → Linked Devices → Link with phone number, then enter this code.';
+            copyHint.textContent = '👆 click any digit to copy';
+            copyHint.style.color = 'rgba(255,255,255,0.2)';
+        }
+
+        function renderMessage(text, type) {
+            resultHeading.textContent = 'Status';
+            resultBody.innerHTML = `<div class="status-message ${type}">${text}</div>`;
+            resultNote.textContent = '';
+            copyHint.textContent = '';
+        }
+
+        function renderLoading() {
+            resultHeading.textContent = 'Connecting';
+            resultBody.innerHTML = `<div class="loader-dots"><span></span><span></span><span></span></div>`;
+            resultNote.textContent = 'Please wait…';
+            copyHint.textContent = '';
+        }
+
+        function copyCode(code) {
+            navigator.clipboard.writeText(code).then(() => {
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 1800);
+            }).catch(() => {});
+        }
+
+        async function getCode() {
+            const num = numberInput.value.replace(/[^0-9]/g, '');
+
+            if (!num || num.length < 10) {
+                result.classList.add('show');
+                renderMessage('Enter a valid number with country code.', 'warn');
+                return;
+            }
+
+            genBtn.disabled = true;
+            genBtn.textContent = 'GENERATING…';
+            radarPing.classList.add('active');
+            result.classList.add('show');
+            renderLoading();
+
+            try {
+                const res = await fetch(`/code?number=${num}`);
+                const data = await res.json();
+
+                if (data.code) {
+                    renderOtp(data.code);
+                } else if (data.status === 'already_connected' || data.status === 'reconnecting') {
+                    renderMessage('✅ Already connected to this number.', 'info');
+                } else if (data.status === 'new_pairing') {
+                    // fallback if code not in response but status says new_pairing
+                    renderMessage('New pairing initiated. Check your WhatsApp.', 'success');
+                } else {
+                    renderMessage('❌ Server error or capacity full. Try again.', 'error');
+                }
+            } catch (e) {
+                renderMessage('⚠️ Could not reach the server.', 'error');
+            } finally {
+                genBtn.disabled = false;
+                genBtn.textContent = 'GENERATE CODE';
+                radarPing.classList.remove('active');
+            }
+        }
+
+        // Enter key
+        numberInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                getCode();
+            }
+        });
+
+        // Auto-focus
+        window.addEventListener('load', () => numberInput.focus());
+    </script>
+</body>
+</html>
