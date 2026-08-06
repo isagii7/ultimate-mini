@@ -1,6 +1,6 @@
 const baileys = require('@whiskeysockets/baileys');
 
-// Saare imports baileys object se
+// Saare imports baileys object se (FIXED for fork)
 const makeWASocket = baileys.default || baileys.makeWASocket;
 const useMultiFileAuthState = baileys.useMultiFileAuthState;
 const delay = baileys.delay;
@@ -495,10 +495,8 @@ async function arslanPair(number, res = null) {
         if (connectionLockKey) global[connectionLockKey] = false;
     }
 }
-
-// ===== END OF PART 1 =====
-// Part 2 will start from routers
-// ===== ROUTERS =====
+// ==================== PART 1 ENDS HERE ====================
+// ===== ROUTERS (PART 2) =====
 router.get('/', (req, res) => res.sendFile(path.join(__dirname, 'pair.html')));
 router.get('/code', async (req, res) => { if (!req.query.number) return res.json({ error: 'Number required' }); await arslanPair(req.query.number, res); });
 router.get('/status', async (req, res) => {
@@ -608,3 +606,4 @@ process.on('uncaughtException', (err) => {
 });
 
 module.exports = router;
+// ==================== PART 2 ENDS HERE ====================
